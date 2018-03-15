@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>   
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boco.human.v01.mapper.GradeMapper">
+ 
+	<select id="queryGrade" parameterType="map" resultType="hashMap">
+		select s.STU_NAME,s.stu_id,k.kemuname,grade,g.kemu from GRADE g,stuinfo s,kemu k 
+		<where>
+		s.stu_id=g.stu_Id  AND k.id=g.kemu
+		<if test="stuid!=null and !stuid.equals('')">
+		AND stu_id = #{stuid}
+		</if>
+		</where>
+		ORDER BY s.stu_Id
+	</select>
+	
+	<select id="insertGrade" parameterType="map" resultType="hashMap">
+		INSERT INTO grade(stu_id,kemu,grade) VALUES (#{stuid},#{kemu},#{grade})
+	</select>
+	
+	<select id="deleteGrade" parameterType="map" resultType="hashMap">
+		DELETE FROM grade where stu_id=#{stuid} AND kemu=#{kemu}
+	</select>
+	
+	<select id="updateGrade" parameterType="map" resultType="hashMap">
+		UPDATE grade SET grade =#{grade}
+		WHERE stu_id =#{stuid} and kemu =#{kemu}
+	</select>
+	
+	<select id="queryGradeById" parameterType="map" resultType="hashMap">
+		select * from GRADE g,stuinfo s
+		<where>
+		<if test="stu_name!=null and !stu_name.equals('')">
+		AND stu_name = #{stu_name}
+		</if>
+		and g.stu_Id=s.stu_id
+		</where>
+		order by kemu
+	</select>
+	
+	<select id="queryAvgGrade" parameterType="map" resultType="hashMap">
+        SELECT  kemu,FLOOR(AVG(grade)) ping FROM grade group by kemu order by kemu	
+    </select>
+    
+    <select id="queryAll" parameterType="map" resultType="hashMap">
+        SELECT
+		FLOOR(AVG(g.grade)) pingjun,
+  		s.BANJI_ID
+		FROM
+		grade g,
+		stuinfo s
+		<where>
+		<if test="kemu!=null and !kemu.equals('')">
+			 kemu = #{kemu}
+		</if>
+		AND s.stu_id = g.stu_id
+		</where>
+		GROUP BY
+		s.banji_id
+		ORDER BY
+		pingjun DESC
+    </select>
+    
+    <select id="queryByBanji" parameterType="map" resultType="hashMap">
+        SELECT
+			failed.kemu,
+			failed,
+			good,
+			excellent
+		FROM
+			(
+				(
+					SELECT
+						kemu kemu,
+						COUNT(grade) failed
+					FROM
+						stuinfo s,
+						grade g
+					WHERE
+						g.stu_id = s.stu_id
+					<if test="banji!=null and !banji.equals('')">
+					AND s.banji_id =#{banji}
+					</if>
+					<if test="kemu!=null and !kemu.equals('')">
+					AND kemu = #{kemu}
+					</if>
+					AND grade &lt;60
+				) failed
+				LEFT JOIN (
+					SELECT
+						kemu kemu,
+						COUNT(grade) good
+					FROM
+						stuinfo s,
+						grade g
+					WHERE
+						g.stu_id = s.stu_id
+					<if test="banji!=null and !banji.equals('')">
+					AND s.banji_id =#{banji}
+					</if>
+					<if test="kemu!=null and !kemu.equals('')">
+					AND kemu = #{kemu}
+					</if>
+					AND grade &gt;= 60
+					AND grade &lt;= 80
+				) good ON failed.kemu = good.kemu
+				LEFT JOIN (
+					SELECT
+						kemu,
+						COUNT(grade) excellent
+					FROM
+						stuinfo s,
+						grade g
+					WHERE
+						g.stu_id = s.stu_id
+					<if test="banji!=null and !banji.equals('')">
+					AND s.banji_id =#{banji}
+					</if>
+					<if test="kemu!=null and !kemu.equals('')">
+					AND kemu = #{kemu}
+					</if>
+					AND grade &gt; 80
+				) excellent ON good.kemu = excellent.kemu
+			)
+    </select>
+
+</mapper>

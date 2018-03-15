@@ -1,0 +1,121 @@
+package com.boco.human.v01.handler;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.v01.service.PopulationService;
+
+@Component
+public class PopulationRegionRangeHandler extends PopulationRegionDefHandler {
+	
+	@Autowired
+	private PopulationService service;
+
+
+	@Override
+	protected String getDataViewName() {
+		// TODO Auto-generated method stub
+		return "range";
+	}
+	
+	
+	
+	@Override
+	protected Object formatData(Map paraMap) {
+		// TODO Auto-generated method stub
+		
+		
+		//生成      userSUM    range
+		String rangelevel=(String) paraMap.get("range");
+		int group=5;//想分多少组
+
+
+		if (rangelevel!=null) {
+			group=Integer.parseInt(rangelevel.toString());
+		}
+		
+		List<Map> list = (List<Map>) super.formatData(paraMap);
+		if (list.size()==0) {
+			return list;
+		}
+		Object maxSum  =  list.get(0).get("userSum");
+		Object minSum=list.get(list.size()-1).get("userSum");
+		int max=Integer.parseInt(maxSum.toString());//获得userSum之一列中的最大值
+		int min=Integer.parseInt(minSum.toString());//获得userSum之一列中的最小值
+        int range=max-min;//差值作为被除数 除以想要的组数 就是 每一组的跨度granularity
+		double entropy=(double)range/group;
+		int granularity= (int) Math.ceil(entropy);//每一组的大小
+		//生成range每一组的上限和下限
+		List<String> rangList = new ArrayList<String>();
+		for (int i = 0; i < group; i++) {
+			int lowerLimit=min+granularity*i;
+			if (i==0) {
+				
+			}else {
+				lowerLimit+=1;
+			}
+			String rangS=(lowerLimit)+"-"+(min+granularity*(i+1));
+			rangList.add(i, rangS);
+		}
+		
+		
+		
+		//生成      userSUM    range
+		List<Map> densittyList = (List<Map>) service.queryRegionDensity(paraMap);
+	
+		Object densitymaxSum  =  densittyList.get(0).get("density");
+		Object densityminSum=densittyList.get(densittyList.size()-1).get("density");
+		float densitymax=Float.parseFloat(densitymaxSum.toString());//获得userSum之一列中的最大值
+		float densitymin=Float.parseFloat(densityminSum.toString());//获得userSum之一列中的最小值
+       System.out.println(densitymin);
+		int densityrange=(int) (densitymax-densitymin);//差值作为被除数 除以想要的组数 就是 每一组的跨度granularity
+		double densityentropy=(double)densityrange/group;
+		int densitygranularity= (int) Math.ceil(densityentropy);//每一组的大小
+		
+		//生成range每一组的上限和下限
+		List<String> densityrangList = new ArrayList<String>();
+		for (int i = 0; i < group; i++) {
+			int lowerLimit=(int) (densitymin+densitygranularity*i);
+			if (i==0) {
+				
+			}else {
+				lowerLimit+=1;
+			}
+			String rangS=(lowerLimit)+"-"+(densitymin+densitygranularity*(i+1));
+			densityrangList.add(i, rangS);
+		}
+		
+		Object sum;
+		int sumInt;
+		int Differenc;
+		//遍历生成rangid
+		for (int i = 0; i < list.size(); i++) {
+			sum =  list.get(i).get("userSum");
+			sumInt=Integer.parseInt(sum.toString());
+			Differenc=sumInt-min;//每一组数据与最小值之间的差值
+			double rangeIdx=(double)Differenc/granularity;
+			list.get(i).put("rangeIdx", Math.ceil(rangeIdx)-1);
+			//如果userSum值为第一组的下限 续作特殊处理 将rangIdx改为0
+			if (sumInt==min) {
+				list.get(i).put("rangeIdx",0);
+				
+				
+			}
+			
+			
+		}
+
+		Map finalMap = new HashMap();
+		finalMap.put("dataArray", list);
+		finalMap.put("range", rangList);
+		finalMap.put("densityRange", densityrangList);
+		
+		return finalMap;
+	}
+
+}

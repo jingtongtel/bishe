@@ -1,0 +1,19 @@
+package com.boco.human.v01.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+
+
+/**
+ */
+@Repository
+public interface CorridorMapper {
+	
+	public List<Map> corridorQuery(Map paraMap);
+
+	public List<Map> corridorQueryNoOrder(Map paraMap);
+
+}

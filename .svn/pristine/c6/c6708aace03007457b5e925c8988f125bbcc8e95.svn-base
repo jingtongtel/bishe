@@ -1,0 +1,61 @@
+package com.boco.human.v01.handler;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.v01.service.CodeService;
+
+
+@Component
+public class CodeRegionDefHandler extends AbstractViewHandler {
+	
+	@Autowired
+	private CodeService codeservice;
+
+	@Value("#{rsconfig['dic.code.region.level']}")
+	private String metricName;
+	
+	@Override
+	protected String getMetricName() {
+		
+		return this.metricName;
+	}
+
+	@Override
+	protected String getDataViewName() {
+		
+		return DATAVIEW_DEF_NAME;
+	}
+
+	@Override
+	protected List formatData(Map paraMap) {
+		// TODO Auto-generated method stub
+		String subCodes =  (String) paraMap.get("regionCode");
+		String regionCodeLength = "3";
+		
+		
+		
+		if (subCodes != null) {
+			
+			switch (subCodes.length()) {
+			
+			case 3:// 81101
+				regionCodeLength = "5";
+				break;
+			case 5:// 8110102
+				regionCodeLength = "7";
+				break;
+				
+			
+				
+			}
+		}
+		paraMap.put("codeLength",regionCodeLength);
+		return codeservice.queryRegionLevel(paraMap);
+	}
+
+}

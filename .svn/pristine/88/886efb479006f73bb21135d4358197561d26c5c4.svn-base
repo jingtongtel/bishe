@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="Generator" content="EditPlus®">
+<meta name="Author" content="">
+<meta name="Keywords" content="">
+<meta name="Description" content="">
+<title>Document</title>
+<script src="jquery-3.1.1.js"></script>
+<script>
+	var defPostOpts = {
+
+		dataType : "json",
+		success : function(result) {
+			//alert(result);
+			$("#responseContent").html(
+					"<strong>" + JSON.stringify(result) + "</strong>");
+		},
+		error : function(jqXHR, errTypeStr) {
+			$("#responseContent").html(
+					"<strong> Status Code:<font color='red'>" + jqXHR.status
+							+ "</font><br />" + JSON.stringify(jqXHR)
+							+ "</strong>");
+		}
+	}
+
+	function postServer() {
+		$("#responseContent").html("");
+		var mf = document.myForm;
+		var newPostOpts = {};
+		newPostOpts.url = mf.myUrl.value;
+		newPostOpts.method = mf.method.value;
+		newPostOpts.contentType = mf.contentType.value;
+		newPostOpts.data = mf.jsonData.value;
+
+		$.ajax($.extend(defPostOpts, newPostOpts));
+	}
+
+	function dbjson() {
+		var sql = document.myForm.sqlTa.value;
+		sql = encodeURI(sql);
+		data = {
+			"sql" : sql
+		}
+		alert(sql);
+		var url = "http://127.0.0.1/8080/demo/dbjson";
+		$.post(url, data, function(data) {
+			$("#responseContent").html(data);
+		});
+	}
+
+	$(function() {
+		postServer();
+	})
+
+	function openwin() {
+		//写成一行 
+		window
+				.open("InterfaceDocumentation01.htm", "newwindow",
+						" toolbar=no,menubar=no, scrollbars=no, resizable=no, location=no, status=no")
+	}
+</script>
+</head>
+<body>
+	<form name="myForm">
+		url :<input type="txt" name="myUrl"
+			value="http://10.12.2.11:8686/mbd/v01/metric/population/region"
+			style="width: 80%" /> <br /> method : <select name="method">
+			<option value="post">post</option>
+			<option value="get">get</option>
+		</select> <br /> contentType : <select name="contentType">
+			<option value="application/json">application/json</option>
+			<option value="text/plain">text/plain</option>
+		</select> <br /> jsonData:
+		<textarea name="jsonData" style="width: 50%; height: 160px;">
+		{ "para": { "dataView": "default", "range":"5", "userType": "1", "distributionId": "1", "regionType": "kjqy-xzss", "subRegionCode": [ "003000670782", "003000790781", "003000770783", "003000770784", "000102210729", "000102240730" ], "timeSize": "1", "timeObj": { "format": "yyyyMMdd", "vals": [ "20170221" ] } } } 
+		  </textarea>
+		  <input type="button" value="submit" onclick="postServer();" />
+		<div style=" width:100%;height:150px; overflow:auto;">
+			<b>人口分布（区域）/metric/population/region 样例入参</b> <br /> 
+			{
+    "para": {
+        "dataView": "default",
+"range":"5",
+        "userType": "1",
+        "distributionId": "1",
+        "regionType": "kjqy-xzss",
+        "subRegionCode": [
+            "003000670782",
+            "003000790781",
+            "003000770783",
+            "003000770784",
+            "000102210729",
+            "000102240730"
+        ],
+        "timeSize": "1",
+        "timeObj": {
+            "format": "yyyyMMdd",
+            "vals": [
+                "20170221"
+                
+            ]
+        }
+    }
+}
+
+			<br /> <br /> 
+			
+			<b>实时人口分布（区域）/metric/population/realtime 样例入参</b> <br /> 
+			{
+    "para": {
+        "dataView": "default",
+        "range": "5",
+        "regionType": "kjqy-xzss",
+        "subRegionCode": [
+            "003000670782",
+            "003000790781",
+            "003000770783",
+            "003000770784",
+            "000102210729",
+            "000102240730"
+        ],
+        "timeSize": "1",
+        "timeObj": {
+            "format": "yyyyMMddHHmm",
+            "vals": [
+                "201702221330"
+            ]
+        }
+    }
+}
+			<br /> <br /> 
+			<b>区域出行- /metric/travel/intensity 样例入参</b> <br />
+			{"para":{"dataView":"default","regionType":"kjqy-xzss","userType":"0","showFields":["odGoal","odType","odTime"],"subRegionCode":["002100300001","002100300003"],"orderBy":["timeAvg
+			desc","oName"],"timeSize":"2"}}
+			<br />
+			<br />
+			<b>空间区域-code/region/level 样例入参</b>
+			<br />
+			{"para": {"dataView": "default", "regionType": "kjqy-xzss","regionName":"蒙城县","regionCode": "003000670780","subLevel": "1"
+    }
+}
+			<br />
+			<br />
+			
+			<b>字典-类型组数据-/code/dict/type 样例入参</b>
+			<br />
+			{"para":{"dicTypes":["metadata","cxmd","cxfs"]}}
+			<br />
+			<br />
+			<b>字典-业务组数据-/code/dict/busi 样例入参</b>
+			<br />
+			{"para":{"busiTypes":["default-init","ssrk-szwd","fssrk-szwd","czrk-fblx","ldrk-fblx","xs-shlx","default-sjlx","jtzl-rklx","fssrk-rklx","ssrk-rklx"]}}	  
+		</div>	   
+			<br /> <br /> 
+		<a href="#"
+			onclick="openwin()">接口文档</a>
+		<hr>
+	</form>
+	<div id="responseContent"></div>
+
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+package com.boco.human.v01.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+
+/**
+ */
+@Repository
+public interface CodeMapper {
+
+	/**
+	 * 根据条件查询
+	 * @param map
+	 * @return
+	 */
+	public List<Map> query(Map paraMap);
+
+	public List<Map> queryRegionLevel(Map paraMap);
+	
+	
+	/**
+	 * 字典表方法
+	 * @param paraMap
+	 * @return
+	 */
+	public List<Map> queryDictionay(Map paraMap); 
+
+}

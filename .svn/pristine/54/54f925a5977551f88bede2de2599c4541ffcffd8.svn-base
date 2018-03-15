@@ -1,0 +1,30 @@
+package com.boco.human.v01.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boco.human.v01.mapper.CorridorMapper;
+
+
+@Service
+@Transactional
+public class CorridorService {
+	
+	@Resource
+	private CorridorMapper corridorMapper;
+	
+	
+	public List<Map> corridorQuery(Map paraMap){
+		return corridorMapper.corridorQuery(paraMap);
+	}
+	
+	public List<Map> corridorQueryNoOrder(Map paraMap){
+		return corridorMapper.corridorQueryNoOrder(paraMap);
+	}
+
+}

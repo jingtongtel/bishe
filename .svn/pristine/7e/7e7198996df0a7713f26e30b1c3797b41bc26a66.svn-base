@@ -1,0 +1,123 @@
+package com.boco.human.v01.handler;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.v01.service.PopulationService;
+
+@Component
+public class PopulationRegionTimeArrayHandler  extends PopulationRegionDefHandler{
+	@Autowired
+	private PopulationService service;
+
+
+	@Override
+	protected String getDataViewName() {
+		// TODO Auto-generated method stub
+		return "TimeArray";
+		
+		
+	}
+	//判断具体的 月 有多少天
+	 public static int getDaysOfMonth(Date date) {  
+	        Calendar calendar = Calendar.getInstance();  
+	        calendar.setTime(date);  
+	        return calendar.getActualMaximum(Calendar.DAY_OF_MONTH);  
+	    } 
+	//判断具体的 月 有多少周
+	 public static int getWeeksOfMonth(Date date) {  
+	        Calendar calendar = Calendar.getInstance();  
+	        calendar.setTime(date);  
+	        return calendar.getActualMaximum(Calendar.WEEK_OF_MONTH);  
+	    } 
+	 
+	@Override
+	protected Object formatData(Map paraMap) {
+		// TODO Auto-generated method stub
+		
+		String timeSizeStr= (String) paraMap.get("timeSize");
+		Map timeObj = (Map<String, ?>) paraMap.get("timeObj");
+		
+		List<String> vals = (List<String>) timeObj.get("vals");
+		String formatStr = (String) timeObj.get("format");
+		
+		System.out.println(paraMap);
+		int orderNum=12;
+		int formatInt=Integer.parseInt(timeSizeStr);
+		SimpleDateFormat informat = new SimpleDateFormat(formatStr);
+		switch (formatInt) {
+		case 2:
+			 
+			//orderNum=31;
+			
+			try {
+				
+				orderNum=getDaysOfMonth(informat.parse(vals.get(0)));
+                System.out.println(orderNum);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			break;
+		case 3:
+			try {
+				
+				orderNum=getWeeksOfMonth(informat.parse(vals.get(0)));
+                System.out.println(orderNum);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			break;
+		case 4:
+			orderNum=12;
+			break;
+		case 5:
+			orderNum=4;
+			break;
+		
+		default:
+			break;
+		}
+		
+		List<Map> list = (List<Map>) super.formatData(paraMap);
+		
+		int[] times = new int[orderNum];
+		Object[] data = new Object[orderNum];
+		Map  finalMap=new HashMap();
+		Map timeMap = null;
+		for (int i = 1; i < orderNum+1; i++) {
+			ArrayList retList = new ArrayList<>();
+			for (Map everyMap : list) {
+				Object dateFullsString= everyMap.get("dateFull");
+				int max=Integer.parseInt(dateFullsString.toString());
+			    timeMap= new HashMap(); 
+				if(i ==max%100){
+					timeMap.put("density", everyMap.get("density"));
+					timeMap.put("objectId", everyMap.get("objectId"));
+					timeMap.put("userSum", everyMap.get("userSum"));
+					timeMap.put("regionName", everyMap.get("regionName"));
+					retList.add(timeMap);
+				}
+				
+			}
+			times[i-1] = i;
+			data[i-1] = retList;
+			
+			
+			finalMap.put("times", times);
+			finalMap.put("timeData", data);
+		}
+		
+		return finalMap;
+	}
+	
+
+}

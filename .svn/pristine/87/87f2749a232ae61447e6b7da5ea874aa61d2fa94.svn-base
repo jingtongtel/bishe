@@ -1,0 +1,136 @@
+package com.boco.human.v01.handler;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.v01.service.PopulationService;
+
+@Component
+public class PopulationRegionDefHandler  extends AbstractViewHandler{
+	
+	@Autowired
+	private PopulationService service;
+
+	
+	@Value("#{rsconfig['pol.population.region']}")
+	private String metricName;
+	@Override
+	protected String getMetricName() {
+		// TODO Auto-generated method stub
+		return this.metricName;
+	}
+
+	@Override
+	protected String getDataViewName() {
+		// TODO Auto-generated method stub
+		return DATAVIEW_DEF_NAME;
+	}
+
+	
+	private final static  SimpleDateFormat DATE_FORMAT_D = new SimpleDateFormat("yyyyMMdd");
+	private final static  SimpleDateFormat DATE_FORMAT_H = new SimpleDateFormat("HH");
+	private final static  SimpleDateFormat DATE_FORMAT_MIN = new SimpleDateFormat("mm");
+	private final static  SimpleDateFormat DATE_FORMAT_DH = new SimpleDateFormat("yyyyMMddHH");
+	private final static  SimpleDateFormat DATE_FORMAT_M = new SimpleDateFormat("yyyyMM");
+	private final static  SimpleDateFormat DATE_FORMAT_W = new SimpleDateFormat("W");
+	private final static  SimpleDateFormat DATE_FORMAT_Y = new SimpleDateFormat("yyyy");
+	private final static  SimpleDateFormat DATE_FORMAT_Q = new SimpleDateFormat("MM");
+	@Override
+	protected List formatData(Map paraMap) {
+		//Asserts.notNull(paraMap.get("regionType"), "参数对象 regionType 不能为空");
+		
+		paraMap.put("tableName", "pub_dw_user_rlregion_d");
+		String timeSize = (String) paraMap.get("timeSize");
+		if(timeSize != null){
+			Map timeObj = (Map<String, ?>) paraMap.get("timeObj");
+			
+
+		
+			
+			if (timeObj != null && timeObj.get("format") != null && timeObj.get("vals") != null) {
+				String formatStr = (String) timeObj.get("format");
+				SimpleDateFormat informat = new SimpleDateFormat(formatStr);
+				List timeListD = new ArrayList();
+				List timeListH = new ArrayList();
+				List timeListMIN = new ArrayList();
+				List timeListDH = new ArrayList();
+				List timeListM = new ArrayList();
+				List timeListW = new ArrayList();
+				List timeListY = new ArrayList();
+				List timeListQ = new ArrayList();
+				List timeListYQ = new ArrayList();
+				List<String> timeVals = (List<String>) timeObj.get("vals");
+				for(String timeStr : timeVals){
+				
+					Date date = null;
+					try {
+						date = informat.parse(timeStr);
+						timeListD.add(DATE_FORMAT_D.format(date));
+						timeListH.add(DATE_FORMAT_H.format(date));
+						timeListDH.add(DATE_FORMAT_DH.format(date));						
+						timeListMIN.add(DATE_FORMAT_MIN.format(date));
+						timeListM.add(DATE_FORMAT_M.format(date));
+						timeListW.add(DATE_FORMAT_W.format(date));
+						timeListY.add(DATE_FORMAT_Y.format(date));						
+						timeListQ.add(DATE_FORMAT_Q.format(date));	
+						System.out.println(timeListQ);
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} // 提取格式中的日期
+				}
+				
+				if (timeSize.equals("minute")) {// 判断是否需查分钟表
+					paraMap.put("tableName", "pub_dw_user_rlregion_min");
+					paraMap.put("dateDH",timeListDH);
+					paraMap.put("dateMIN",timeListMIN);
+				}  else if (timeSize.equals("hour")) {// 判断是否需查小时表
+					paraMap.put("tableName", "pub_dw_user_rlregion_h");
+					paraMap.put("dateD",timeListD);
+					paraMap.put("dateH",timeListH);
+				} else if (timeSize.equals("day")) {// 判断是否需查日表
+					paraMap.put("tableName", "pub_dw_user_rlregion_d");
+					paraMap.put("dateD",timeListD);
+				}else if (timeSize.equals("weekday")) {// 判断是否需查周表
+					paraMap.put("tableName", "pub_dw_user_rlregion_w");
+					paraMap.put("dateM",timeListM);
+					paraMap.put("dateW",timeListW);
+				}else if (timeSize.equals("month")) {// 判断是否需查月表
+					paraMap.put("tableName", "pub_dw_user_rlregion_m");
+					paraMap.put("dateM",timeListM);
+				}else if (timeSize.equals("quarterly")) {// 判断是否需查季度表
+					for (int i = 0; i < timeListQ.size(); i++) {
+						if (timeListQ.get(i).equals("01") || timeListQ.get(i).equals("02")||timeListQ.get(i).equals("03")) {
+							timeListQ.set(i, "01");
+						} else if (timeListQ.get(i).equals("04") || timeListQ.get(i).equals("05")||timeListQ.get(i).equals("06")) {
+							timeListQ.set(i, "02");
+						}else if (timeListQ.get(i).equals("07") || timeListQ.get(i).equals("08")||timeListQ.get(i).equals("09")) {
+							timeListQ.set(i, "03");
+						}else if (timeListQ.get(i).equals("10") || timeListQ.get(i).equals("11")||timeListQ.get(i).equals("12")) {
+							timeListQ.set(i, "04");
+						}
+						timeListYQ.add(i, (String)timeListY.get(i)+timeListQ.get(i));
+					}
+					
+					paraMap.put("dateYQ",timeListYQ);
+					paraMap.put("tableName", "pub_dw_user_rlregion_q");
+				}else if (timeSize.equals("year")) {// 判断是否需查年表
+					paraMap.put("tableName", "pub_dw_user_rlregion_y");
+					paraMap.put("dateY",timeListY);
+				} 
+			}
+		
+	}
+		return service.query(paraMap);
+	}
+
+}

@@ -1,0 +1,107 @@
+package com.boco.human.v01.handler;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.util.Asserts;
+import com.boco.human.util.DateUtil;
+import com.boco.human.v01.service.CorridorService;
+
+/**
+ * 交通走廊指标的默认数据格式实现
+ * 
+ * @author 侯捷西
+ *
+ */
+@Component
+public class TravelCorridorDefHandler    extends AbstractViewHandler{
+
+	@Autowired
+	private  CorridorService service; 
+	
+	
+	/**
+	 * 从配置文件中注入指标名称
+	 */
+	@Value("#{rsconfig['metrics.traffic.corridor']}")
+	private String metricName;
+	
+	@Autowired
+	Properties rsconfig;
+
+	@Override
+	protected String getMetricName() {
+		// TODO Auto-generated method stub
+		return this.metricName;
+	}
+
+	@Override
+	protected String getDataViewName() {
+		// TODO Auto-generated method stub
+		return DATAVIEW_DEF_NAME;
+	}
+	
+	/**
+	 * 处理空间区域入参的方法
+	 * @param paraMap
+	 */
+	
+	
+	
+	/**
+	 * 处理时间入参的方法
+	 * @param paraMap
+	 */
+	private void handleTimeVals(Map paraMap){
+		Map timeObj = (Map<String, ?>) paraMap.get("timeObj");
+		if(timeObj == null){
+			return;
+		}
+		List<String> vals = (List<String>) timeObj.get("vals");
+		String formatStr = (String) timeObj.get("format");
+		Asserts.notNull(vals, "参数对象 vals 不能为空");
+		Asserts.notNull(formatStr, "参数对象 format 不能为空");
+		
+		
+		List<String> timeVals = new ArrayList<String>();
+		
+		String gargetformat = rsconfig.getProperty("metrics.traffic.corridor.field"+paraMap.get("timeSize"));
+		for(String timeStr : vals){
+			try {
+				String targetStr = DateUtil.parseFormat(timeStr,formatStr,gargetformat);
+				if(paraMap.get("timeSize").equals("5")){//季度表时，追加季度转换数值
+					targetStr += DateUtil.getQuarter(targetStr, gargetformat);
+				}
+				timeVals.add(targetStr);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				throw new IllegalArgumentException(e.getMessage(), e);
+			} // 提取格式中的日期
+		}
+		paraMap.put("corridorDate",timeVals);
+	}
+	
+	
+
+	@Override
+	protected Object formatData(Map paraMap) {
+		// TODO Auto-generated method stub
+		List<String> corridorId = (List<String>) paraMap.get("corridor");
+		Asserts.notNull(corridorId, "参数对象 corridor 不能为空");
+
+		if(paraMap.get("timeSize") == null){
+			paraMap.put("timeSize","2");
+		}
+		
+		this.handleTimeVals(paraMap);
+		return service.corridorQuery(paraMap);
+	}
+
+}

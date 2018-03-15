@@ -1,0 +1,26 @@
+package com.boco.human.v01.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+
+@Repository
+public interface PopulationMapper {
+
+	public List<Map> queryRegion(Map paraMap);
+
+	/**
+	 * 查询位置点实时用户分布
+	 * @param paraMap
+	 * @return
+	 */
+	public List<Map> queryPoint(Map paraMap);
+
+	public List<Map> queryRealTime(Map paraMap);
+
+	public List<Map> queryRegionDensity(Map paraMap);
+
+
+}

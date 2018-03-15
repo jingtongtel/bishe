@@ -1,0 +1,71 @@
+package com.boco.human.v01.handler;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.v01.service.CodeService;
+
+
+@Component
+public class CodeRegionDefHandler extends AbstractViewHandler {
+	
+	@Autowired
+	private CodeService codeservice;
+
+	@Value("#{rsconfig['dic.code.region.level']}")
+	private String metricName;
+	
+	@Override
+	protected String getMetricName() {
+		
+		return this.metricName;
+	}
+
+	@Override
+	protected String getDataViewName() {
+		
+		return DATAVIEW_DEF_NAME;
+	}
+
+	@Override
+	protected List formatData(Map paraMap) {
+		// TODO Auto-generated method stub
+		String regionCode =  (String) paraMap.get("regionCode");
+		paraMap.put("regionCode",regionCode);
+		
+		
+		
+		if (regionCode != null) {
+			int regionLevel;
+		    regionLevel=regionCode.length()/4;
+		    //期望下钻的级别
+		    String rangelevel=(String) paraMap.get("subLevel");
+			
+
+		    int subLevelTemp=0;
+			if (rangelevel!=null) {
+				  subLevelTemp=Integer.parseInt(rangelevel.toString());;
+			}
+			if (subLevelTemp==0) {
+			
+			}else  {
+				System.out.println(regionLevel+subLevelTemp);
+				//实际查询到第几级别
+				paraMap.put("regionLevel",regionLevel+subLevelTemp);
+
+			}
+			
+			
+			
+		}else {
+			int  regionLevel = 1;
+			paraMap.put("regionLevel",regionLevel);
+		}
+		return codeservice.queryRegionLevel(paraMap);
+	}
+
+}

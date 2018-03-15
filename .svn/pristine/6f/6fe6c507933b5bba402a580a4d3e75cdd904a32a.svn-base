@@ -1,0 +1,83 @@
+package com.boco.human.v01.handler;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class CodeRegionNestHandler extends CodeRegionDefHandler {
+
+	@Override
+	protected String getDataViewName() {
+
+		return "nest";
+	}
+
+	@Override
+	protected List formatData(Map paraMap) {
+		List<Map> list = (List<Map>) super.formatData(paraMap);
+		Map struct = null;
+		int beginLevel = 1;// 开始的数据级别，可理解为多个树。默认1级
+		List result = new ArrayList();
+		List subRegionCode = (List)paraMap.get("subRegionCode");
+		//按照subRegionCode驱动
+		Set subRegionSet = null;
+		if(subRegionCode != null && subRegionCode.size()>0){
+			subRegionSet = new HashSet<String>(subRegionCode);
+		}
+
+		Map map = null;
+		for (int i = 0; i < list.size(); i++) {
+			
+			struct = list.get(i);
+			String strRegionLvl = struct.get("regionLvlId").toString();
+			
+			// 如果传入了subRegionCode，则按照subRegionCode驱动递归
+			if(subRegionCode != null){
+				if(!subRegionCode.contains(struct.get("regionCode"))){
+					continue;
+				}
+			}
+			else if (!(beginLevel + "").equals(strRegionLvl)) {
+				continue;
+			}
+			map = new HashMap();
+
+			result.add(makeNest(struct, map, list));
+
+		}
+		return result;
+	}
+
+	Map makeNest(Map pItem, Map pMap, List<Map> list) {
+		pMap.put("id", pItem.get("regionCode"));
+		pMap.put("name", pItem.get("regionName"));
+		pMap.put("level", pItem.get("regionLvlId"));
+		//pMap.put("regionArea", pItem.get("regionArea"));
+		String strRegionLvl = pItem.get("regionLvlId").toString();
+		int currentLel = Integer.parseInt(strRegionLvl);
+		for (int i = 0; i < list.size(); i++) {
+			Map<String, Object> item = (Map) list.get(i);
+			// System.out.print(""+pItem.get("regionName")+pitem.get("regionLvl")+"->"+item[5]+item.get("regionLvl"));
+			String strItemRegionLvl = item.get("regionLvlId").toString();
+			if (((String)item.get("regionCode")).startsWith((String) pItem.get("regionCode"))
+					&& strItemRegionLvl.equals((currentLel + 1) + "")) {
+				// 子节点
+				List subList = (List) pMap.get("children");
+				if (subList == null) {
+					subList = new ArrayList();
+					pMap.put("children", subList);
+				}
+				Map map = new HashMap();
+				subList.add(map);
+				makeNest(item, map, list);
+			}
+		}
+		return pMap;
+	}
+}

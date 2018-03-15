@@ -1,0 +1,115 @@
+package com.boco.human.v01.handler;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.util.Asserts;
+import com.boco.human.util.DateUtil;
+import com.boco.human.v01.service.TravelService;
+
+/**
+ * 出行强度指标的默认数据格式实现
+ * 
+ * @author 张晨
+ *
+ */
+@Component
+public class TravelIntensityDefHandler extends AbstractViewHandler {
+
+	@Autowired
+	private TravelService service;
+	
+	
+	/**
+	 * 从配置文件中注入指标名称
+	 */
+	@Value("#{rsconfig['metrics.travel.intensity']}")
+	private String metricName;
+
+	@Override
+	protected String getMetricName() {
+		// TODO Auto-generated method stub
+		return this.metricName;
+	}
+
+	@Override
+	protected String getDataViewName() {
+		// TODO Auto-generated method stub
+		return DATAVIEW_DEF_NAME;
+	}
+	
+	
+	/**
+	 * 处理空间区域入参的方法
+	 * @param paraMap
+	 */
+	private void handleRegion(Map paraMap){
+		
+		//默认统计的区域级别
+		paraMap.put("regionLevelLength", "3");//临时写死
+		if(paraMap.get("regionType").equals("1")){
+			paraMap.put("regionLevelLength", "7");
+		}
+		
+		List<String> subCodes = (List<String>) paraMap.get("subRegionCode");
+		if(subCodes != null && !subCodes.isEmpty()){
+			//记录前台传来的regionCode长度,数据根据此长度作为区域粒度进行统计（仅支持前台OD查询相同界别的区域）
+			paraMap.put("regionLevelLength", subCodes.get(0).length());
+		}
+	}
+	
+	/**
+	 * 处理时间入参的方法
+	 * @param paraMap
+	 */
+	private void handleTime(Map paraMap){
+		String timeSize = (String) paraMap.get("timeSize");
+		if(timeSize != null){
+			if (timeSize.equals("DAY")) {// 判断是否需查小时表
+				paraMap.put("tableName", "pub_dw_user_od_h");
+				paraMap.put("isHour", true);//辅助mybatis是否生成查询
+			} 
+			
+			Map timeObj = (Map<String, ?>) paraMap.get("timeObj");
+			if (timeObj != null && timeObj.get("format") != null && timeObj.get("vals") != null) {
+				String formatStr = (String) timeObj.get("format");
+				//SimpleDateFormat informat = new SimpleDateFormat(formatStr);
+				List timeListD = new ArrayList();
+				List timeListH = new ArrayList();
+				List<String> timeVals = (List<String>) timeObj.get("vals");
+				for(String timeStr : timeVals){
+					try {
+						timeListD.add(DateUtil.parseFormat(timeStr,formatStr,"yyyyMMdd"));
+						timeListD.add(DateUtil.parseFormat(timeStr,formatStr,"HH"));
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						throw new IllegalArgumentException(e.getMessage(), e);
+					} // 提取格式中的日期
+				}
+				paraMap.put("odDateD",timeListD);
+				paraMap.put("odDateH",timeListH);
+			}
+		}
+	}
+
+	@Override
+	protected List<Map> formatData(Map paraMap) {
+		// TODO Auto-generated method stub
+		Asserts.notNull(paraMap.get("regionType"), "参数对象 regionType 不能为空");
+		this.handleRegion(paraMap);
+		
+		paraMap.put("tableName", "pub_dw_user_od_d");
+		
+		this.handleTime(paraMap);
+		System.out.println(paraMap);
+		return service.intensity(paraMap);
+	}
+
+}

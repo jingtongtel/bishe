@@ -1,0 +1,86 @@
+package com.boco.human.v01.handler;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.util.Asserts;
+import com.boco.human.util.DateUtil;
+import com.boco.human.v01.service.PopulationService;
+
+/**
+ * 位置点实时用户指标类
+ * 
+ * @author 张晨
+ *
+ */
+@Component
+public class PopulationPointDefHandler extends AbstractViewHandler {
+
+	@Autowired
+	private PopulationService service;
+
+	@Value("#{rsconfig['metrics.population.point']}")
+	private String metricName;
+	
+	@Autowired
+	Properties rsconfig;
+
+
+	@Override
+	protected String getMetricName() {
+		// TODO Auto-generated method stub
+		return this.metricName;
+	}
+
+	@Override
+	protected String getDataViewName() {
+		// TODO Auto-generated method stub
+		return DATAVIEW_DEF_NAME;
+	}
+
+	@Override
+	protected List formatData(Map<?, ?> paraMap) {
+		// TODO Auto-generated method stub
+		Asserts.notNull(paraMap.get("timeSize"), "参数对象 timeSize 不能为空");
+		Asserts.notNull(paraMap.get("timeObj"), "参数对象 timeObj 不能为空");
+				
+		handleTimeVals(paraMap);
+		
+		System.out.println(paraMap);
+		List<Map<String,String>> result = service.queryPoint(paraMap);
+		for(Map map:result){
+			String loc = (String)map.get("loc");
+			map.put("loc", loc.split(","));
+		}
+		return result;
+	}
+	
+	private void handleTimeVals(Map paraMap){
+		Map timeObj = (Map<String, ?>) paraMap.get("timeObj");
+		List<String> vals = (List<String>) timeObj.get("vals");
+		List<String> timeVals = new ArrayList<String>();
+		String formatStr = (String) timeObj.get("format");
+		String gargetformat = rsconfig.getProperty("metrics.population.point.field"+paraMap.get("timeSize"));
+		for(String timeStr : vals){
+			try {
+				String targetStr = DateUtil.parseFormat(timeStr,formatStr,gargetformat);
+				if(paraMap.get("timeSize").equals("5")){//季度表时，追加季度转换数值
+					targetStr += DateUtil.getQuarter(targetStr, gargetformat);
+				}
+				timeVals.add(targetStr);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				throw new IllegalArgumentException(e.getMessage(), e);
+			} // 提取格式中的日期
+		}
+		paraMap.put("timeVals",timeVals);
+	}
+}

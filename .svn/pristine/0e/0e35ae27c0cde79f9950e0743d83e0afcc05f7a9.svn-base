@@ -1,0 +1,24 @@
+package com.boco.human.v01.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.boco.human.v01.mapper.PopulationMapper;
+
+@Service
+public class PopulationService {
+	
+	@Resource
+	private PopulationMapper populMapper;
+
+	public List query(Map paraMap) {
+		// TODO Auto-generated method stub
+		return populMapper.query(paraMap);
+	}
+
+}

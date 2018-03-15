@@ -1,0 +1,43 @@
+package com.boco.mbd.service.demo;
+
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.boco.mbd.mapper.demo.PopMapper;
+
+/**
+ * 对Student对象操作的业务逻辑层，调用ORM层接口，把结果返回给controller，带有事务控制。
+ * @author liangpeng
+ * @date 2017-02-07
+ */
+@Service
+@Transactional
+public class PopService {
+	
+	
+	@Resource
+	private PopMapper popMapper;
+	
+	/**
+	 * 全量查询
+	 * @return
+	 */
+	public List<HashMap> queryAll(){
+		return popMapper.queryAll();
+	}
+	/**
+	 * 根据条件查询
+	 * @param map
+	 * @return
+	 */
+	public List<HashMap> queryById(HashMap map){
+		return popMapper.queryById(map);
+	}
+}

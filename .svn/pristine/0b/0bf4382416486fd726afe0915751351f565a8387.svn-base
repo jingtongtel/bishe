@@ -1,0 +1,109 @@
+package com.boco.human.v01.handler;
+
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.boco.human.util.Asserts;
+import com.boco.human.v01.service.CodeService;
+
+
+@Component
+public class CodeRegionDefHandler extends AbstractViewHandler {
+	
+	@Autowired
+	private CodeService codeservice;
+
+	@Value("#{rsconfig['dic.code.region.level']}")
+	private String metricName;
+	
+	@Override
+	protected String getMetricName() {
+		
+		return this.metricName;
+	}
+
+	@Override
+	protected String getDataViewName() {
+		
+		return DATAVIEW_DEF_NAME;
+	}
+	
+	/**
+	 * 获取指定字符串出现的次数
+	 * 
+	 * @param srcText 源字符串
+	 * @param findText 要查找的字符串
+	 * @return
+	 */
+	public static int appearNumber(String srcText, String findText) {
+	    int count = 0;
+	    Pattern p = Pattern.compile(findText);
+	    Matcher m = p.matcher(srcText);
+	    while (m.find()) {
+	        count++;
+	    }
+	    return count;
+	}
+
+
+	@Override
+	protected Object formatData(Map paraMap) {
+		// TODO Auto-generated method stub
+		
+		
+		Asserts.notNull(paraMap.get("regionType"), "参数对象 regionType 不能为空");
+		List<String> subRegionCode =  (List<String>) paraMap.get("subRegionCode");
+		
+		
+		
+		
+		if (subRegionCode != null) {
+			
+		    //期望下钻的级别
+		    String rangelevel=(String) paraMap.get("subLevel");
+			
+
+		    int subLevelTemp=0;
+			if (rangelevel!=null) {
+				  subLevelTemp=Integer.parseInt(rangelevel.toString());;
+			}
+			if (subLevelTemp==0) {
+			
+			}else  {
+				//实际查询到第几级别
+				String findText = "-";
+				int regionLevel;
+				for (String string : subRegionCode) {
+					
+					regionLevel = appearNumber(string, findText)+1;
+					paraMap.put("regionLevel",regionLevel+subLevelTemp);
+					System.out.println(regionLevel);
+					System.out.println(regionLevel+subLevelTemp);
+					
+				}
+//				int regionLevel;
+//				for (String subRegionString : subRegionCode) {
+//					
+//					 regionLevel=subRegionString.length()/4;
+//					 
+//					 System.out.println(regionLevel+subLevelTemp);
+//				}
+				
+
+			}
+			
+			
+			
+		}else {
+			
+		}
+		return codeservice.queryRegionLevel(paraMap);
+	}
+
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>   
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- mybatis操作student对象的配置文件，与mapper接口对应 -->
+<mapper namespace="com.boco.human.v01.mapper.MigrateMapper">
+
+   
+
+   
+
+      <!-- 全量查询，'id'须唯一，与mapper接口方法名保持一致 -->
+	<select id="queryStuNum"  parameterType="map" resultType="hashMap">
+		select * from travel t where  t.o_region_name in 
+		 <foreach item="item" index="index" collection="cityCheck" open="(" separator="," close=")">  
+           #{item}  
+         </foreach>  
+    </select>
+    
+</mapper>

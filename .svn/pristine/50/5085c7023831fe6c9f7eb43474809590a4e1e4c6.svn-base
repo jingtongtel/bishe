@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>   
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boco.human.v01.mapper.CodeMapper">
+
+    
+	<select id="queryDictionay"    parameterType="Map"  resultType="hashMap">
+		select t.dic_name name, t.dic_value value, t.dic_type dicType
+		  from dim_dictionary t
+		  <where>
+		  	<choose>
+		  		<when test="dicTypes != null and dicTypes.size() > 0">
+		  			t.dic_type in
+					<foreach item="item" index="index" collection="dicTypes" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					t.dic_type ='metadata'
+				</otherwise>
+		  	</choose>
+		 </where>
+		order by t.dic_type, t.dic_value
+	</select>
+
+
+    <!-- 全量查询，'id'须唯一，与mapper接口方法名保持一致 -->
+	<select id="query"    parameterType="Map"  resultType="hashMap">
+		SELECT DIC_NAME dicName,DIC_VALUE dicValue  FROM pub_dim_datadictionary 
+		<where> 
+		<if test="dicType!=null and !dicType.equals('')">
+			 	  AND DIC_TYPE  in
+		<foreach item="item" index="index" collection="dicType" open="(" separator="," close=")">   
+            		#{item}
+ 		</foreach> 
+		</if>
+		<if test="parentId!=null and !parentId.equals('')">
+				 AND PARENT_ID=#{parentId}
+		</if>
+	 	</where> 
+	</select>
+	
+	 <!-- 全量查询，'id'须唯一，与mapper接口方法名保持一致 -->
+	<select id="queryRegionLevel"    parameterType="Map"  resultType="hashMap">
+SELECT
+    REGION_CODE regionCode,
+	REGION_NAME regionName,
+    REGION_AREA regionArea
+FROM
+	DIM_KEYREGION
+WHERE
+	REGION_TYPE = #{regionType}
+		<if test="regionLevel!=null and !regionLevel.equals('')">
+		 AND  REGION_LVL &lt;=#{regionLevel}
+		</if>
+		
+		<if test="regionName!=null and !regionName.equals('')">
+		 AND REGION_NAME like concat('%',#{regionName},'%')
+		</if>
+		<if test="regionCode!=null and !regionCode.equals('')">
+		 AND REGION_CODE LIKE  concat(#{regionCode},'%')
+		</if>
+		ORDER BY
+			REGION_CODE	
+	</select>
+	
+	<!-- 全量查询，'id'须唯一，与mapper接口方法名保持一致 -->
+	<select id="queryRegion"    parameterType="Map"  resultType="hashMap">
+SELECT
+	PROV_NAME provName,
+	PROV_CODE provCode,
+	PROV_AREA provArea,
+	CITY_NAME cityName,
+	CITY_CODE cityCode,
+	CITY_AREA cityArea,
+	COUNTY_NAME countyName,
+	COUNTY_CODE countyCode,
+	COUNTY_AREA countyArea,
+	KEYREGION_NAME keyRegionName,
+	KEYREGION_CODE keyRegionCode,
+	KEYREGION_AREA keyRegionArea
+FROM
+	pub_dim_keyregion
+WHERE 1=1
+		<if test="regionType!=null and !regionType.equals('')">
+			 	  AND REGION_TYPE=#{regionType}
+		</if>
+		<if test="provCode!=null"> AND PROV_CODE LIKE #{provCode}</if>
+		<if test="cityCode!=null">AND CITY_CODE LIKE concat(#{cityCode},'%')</if>
+		<if test="countyCode!=null">AND COUNTY_CODE LIKE concat(#{countyCode},'%')</if>
+					
+	</select>
+</mapper>

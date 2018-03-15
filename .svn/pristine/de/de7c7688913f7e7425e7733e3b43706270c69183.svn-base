@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>   
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boco.human.v01.mapper.TravelMapper">
+
+
+	
+	<select id="intensity" resultType="hashMap">
+		SELECT
+			ro.REGION_NAME oName,   
+			rd.REGION_NAME dName,
+			od_cnt / 100 val,		-- 出行强度的计算公式，此处为示例
+			od_cnt odCnt
+		FROM
+			pub_dim_keyregion ro,
+			pub_dim_keyregion rd,
+			(
+				SELECT
+					O_REGION_CODE_PRIX,
+					D_REGION_CODE_PRIX,
+					sum(od_cnt) od_cnt
+				FROM
+					(
+						SELECT
+							LEFT (                  -- 将目标数据的空间级别汇总为前台传入的级别
+								od.O_REGION_CODE,
+								${regionLevelLength}  
+							) O_REGION_CODE_PRIX,
+							LEFT (
+								od.D_REGION_CODE,
+								${regionLevelLength}
+							) D_REGION_CODE_PRIX,
+							od.OD_CNT
+						FROM
+							${tableName} od
+						WHERE
+							region_type=#{regionType}
+						<if test="odDateD != null">
+						AND   -- 考虑根据时间进行分区存储
+							<foreach item="item" index="index" collection="odDateD" open="(" separator="OR" close=")">
+								(od.DATEO_D = #{item} and od.DATED_D = #{item})
+							</foreach>
+						</if>
+						<if test="odGoal != null">
+						AND   od.od_goal = #{odGoal}
+						</if>
+						<if test="odType != null">
+						AND   od.od_type = #{odType}
+						</if>
+						<if test="userType != null">
+						AND  od.user_type in
+							<foreach item="item" index="index" collection="userType" open="(" separator="," close=")">
+								#{item}
+							</foreach>
+						</if>
+						
+						<if test="subRegionCode != null and subRegionCode.size() > 0">
+						AND
+						(
+							<foreach item="item" index="index" collection="subRegionCode" open="(" separator="OR" close=")">
+								od.O_REGION_CODE LIKE CONCAT(#{item},'%')  
+							</foreach>
+							<choose>
+								<when test="subRegionCode.size() == 1">
+				                       OR
+				                </when>
+				                <otherwise>
+				                       AND
+				                </otherwise>
+							</choose>
+						
+							<foreach item="item" index="index" collection="subRegionCode" open="(" separator="OR" close=")">
+								od.D_REGION_CODE LIKE CONCAT(#{item},'%')
+							</foreach>
+						)
+						</if>
+						
+					) region_code_value
+				GROUP BY
+					O_REGION_CODE_PRIX,
+					D_REGION_CODE_PRIX
+			) od_value
+		WHERE
+			ro.REGION_TYPE=#{regionType} AND od_value.O_REGION_CODE_PRIX = ro.REGION_CODE
+		AND rd.REGION_TYPE=#{regionType} AND od_value.D_REGION_CODE_PRIX = rd.REGION_CODE
+	</select>
+	
+
+</mapper>

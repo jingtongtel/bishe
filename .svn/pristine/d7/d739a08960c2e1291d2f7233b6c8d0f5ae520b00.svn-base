@@ -1,0 +1,21 @@
+package com.boco.human.util;
+
+import org.springframework.util.Assert;
+
+public  class Asserts extends Assert{
+	
+	/*public static void notNull(Object object, String message) {
+		//Assert.notNull(object, message);
+		if (object == null) {
+			throw new ParameterException(message);
+		}
+	}*/
+	
+	/*public static void notNull(Object object, String message) {
+		if (object == null) {
+			throw new IllegalArgumentException(message);
+		}
+	}*/
+
+	
+}

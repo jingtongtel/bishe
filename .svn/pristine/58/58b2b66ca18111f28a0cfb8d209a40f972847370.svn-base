@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>   
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- mybatis操作student对象的配置文件，与mapper接口对应 -->
+<mapper namespace="com.boco.human.v01.mapper.PopulationMapper">
+
+	<!-- ************************/population/region**************************** -->
+	
+	
+	<!-- 通过粒度字段判断查询哪个表 -->
+	<sql id="queryRegionTable">
+		<choose>
+			<when test='timeSize.equals("1")'>
+	              pub_dw_user_rlregion_min
+	       </when>
+	       <when test='timeSize.equals("2")'>
+	              pub_dw_user_rlregion_h
+	       </when>
+	       <when test='timeSize.equals("3")'>
+	              pub_dw_user_rlregion_d
+	       </when>
+	       <when test='timeSize.equals("4")'>
+	              pub_dw_user_rlregion_w
+	       </when>
+	       <when test='timeSize.equals("5")'>
+	              pub_dw_user_rlregion_m
+	       </when>
+	       <when test='timeSize.equals("6")'>
+	              pub_dw_user_rlregion_q
+	       </when>
+	       <otherwise>
+	              pub_dw_user_rlregion_y
+	       </otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 拼接查询时间字段 -->
+	<sql id="queryRegionTimeField">
+		<choose>
+			<when test='timeSize.equals("1")'>
+	              q.date_min
+	       </when>
+	       <when test='timeSize.equals("2")'>
+				  CONCAT(q.date_d,q.date_h)
+	       </when>
+	       <when test='timeSize.equals("3")'>
+	               q.date_d
+	       </when>
+	       <when test='timeSize.equals("4")'>
+	               CONCAT(q.date_m,q.date_w)
+	       </when>
+	       <when test='timeSize.equals("5")'>
+	               q.date_m
+	       </when>
+	       <when test='timeSize.equals("6")'>
+	               CONCAT(q.date_y,q.date_q)
+	       </when>
+	       <otherwise>
+	              q.date_y
+	       </otherwise>
+		</choose>
+	</sql>
+	
+	<select id="queryRegion" resultType="hashMap">
+	SELECT
+	k.REGION_NAME regionName,
+	INFLOW_USER_SUM inflowUserSum,
+	OUTFLOW_USER_SUM outflowUserSum,
+	FIX_USER_SUM fixUserSum
+		FROM
+			<include refid="queryRegionTable"></include> AS q,pub_dim_keyregion k
+		WHERE  q.REGION_CODE=k.REGION_CODE
+		<if test="regionType!=null and !regionType.equals('')">
+		AND q.REGION_TYPE = #{regionType}
+		</if>
+		<if test="userType!=null and !userType.equals('')">
+		AND USER_TYPE = #{userType}  
+		</if>
+		
+ 	 	<if test="regionCode!=null and !regionCode.equals('')">
+		AND q.REGION_CODE in
+		<foreach item="item" index="index" collection="regionCode" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>  
+		</if>
+		<if test="timeVals!=null and !timeVals.equals('')">
+ 		AND 
+			<include refid="queryRegionTimeField"></include> IN
+			<foreach item="item" index="index" collection="timeVals" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+			</if>
+	</select>
+	
+	
+	<!-- <select id="query"    parameterType="Map"  resultType="hashMap">
+SELECT
+    k.REGION_NAME regionName,
+	INFLOW_USER_SUM inflowUserSum,
+	OUTFLOW_USER_SUM outflowUserSum,
+	FIX_USER_SUM fixUserSum
+FROM
+      	<if test="tableName!=null and !tableName.equals('')">
+		${tableName} q ,pub_dim_keyregion k
+		</if>
+WHERE  q.REGION_CODE=k.REGION_CODE
+        <if test="regionType!=null and !regionType.equals('')">
+		AND q.REGION_TYPE = #{regionType}
+		</if>
+		<if test="userType!=null and !userType.equals('')">
+		AND USER_TYPE = #{userType}  
+		</if>
+		
+ 	 	<if test="regionCode!=null and !regionCode.equals('')">
+		AND q.REGION_CODE in
+		<foreach item="item" index="index" collection="regionCode" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>   
+			 	
+		</if>
+        <if test="dateD!=null and !dateD.equals('')">
+		AND DATE_D in
+		<foreach item="item" index="index" collection="dateD" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>   
+			 	
+		</if>
+		
+		<if test="dateH!=null and !dateH.equals('')">
+		AND DATE_H in
+		<foreach item="item" index="index" collection="dateH" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>   
+			 	
+		</if>
+		
+		<if test="dateDH!=null and !dateDH.equals('')">
+		AND DATE_DH in
+		<foreach item="item" index="index" collection="dateDH" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>   
+			 	
+		</if>
+		<if test="dateMIN!=null and !dateMIN.equals('')">
+				AND DATE_MIN  in 
+	    <foreach item="item" index="index" collection="dateMIN" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>   
+		</if>
+		<if test="dateM!=null and !dateM.equals('')">
+		AND DATE_M in
+		<foreach item="item" index="index" collection="dateM" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>   
+			 	
+		</if>
+		<if test="dateW!=null and !dateW.equals('')">
+		AND DATE_W in
+		<foreach item="item" index="index" collection="dateW" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>   
+			 	
+		</if>
+		
+		<if test="dateYQ!=null and !dateYQ.equals('')">
+		AND DATE_Y in
+		<foreach item="item" index="index" collection="dateYQ" open="(" separator="," close=")">   
+          #{item}
+ 		</foreach>   
+			 	
+		</if>
+		<if test="dateY!=null and !dateY.equals('')">
+		AND DATE_Y in
+		<foreach item="item" index="index" collection="dateY" open="(" separator="," close=")">   
+           #{item}   
+ 		</foreach>   
+			 	
+		</if>		
+	</select> -->
+	<!-- ***********************END*/population/region*************************** -->
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- ************************/population/point**************************** -->
+	<!-- 通过粒度字段判断查询哪个表 -->
+	<sql id="queryPointTable">
+		<choose>
+			<when test='timeSize.equals("1")'>
+	              pub_dw_user_rlpoint_h
+	       </when>
+	       <when test='timeSize.equals("2")'>
+	              pub_dw_user_rlpoint_d
+	       </when>
+	       <when test='timeSize.equals("3")'>
+	              pub_dw_user_rlpoint_w
+	       </when>
+	       <when test='timeSize.equals("4")'>
+	              pub_dw_user_rlpoint_m
+	       </when>
+	       <when test='timeSize.equals("5")'>
+	              pub_dw_user_rlpoint_q
+	       </when>
+	       <otherwise>
+	              pub_dw_user_rlpoint_y
+	       </otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 拼接查询时间字段 -->
+	<sql id="queryPointTimeField">
+		<choose>
+			<when test='timeSize.equals("1")'>
+	              CONCAT(rp.date_d,rp.date_h)
+	       </when>
+	       <when test='timeSize.equals("2")'>
+				  rp.date_d
+	       </when>
+	       <when test='timeSize.equals("3")'>
+	              CONCAT(rp.date_m,rp.date_w)
+	       </when>
+	       <when test='timeSize.equals("4")'>
+	              rp.date_m
+	       </when>
+	       <when test='timeSize.equals("5")'>
+	              CONCAT(rp.date_m,rp.date_q)
+	       </when>
+	       <otherwise>
+	              rp.date_y
+	       </otherwise>
+		</choose>
+	</sql>
+	
+	<select id="queryPoint" resultType="hashMap">
+		SELECT
+			CONCAT(rp.LONGITUDE,',',rp.LATITUDE) loc,
+			SUM(rp.FIX_USER_SUM) fixUserSum,
+			SUM(rp.INFLOW_USER_SUM) inflowUserSum,
+			SUM(rp.OUTFLOW_USER_SUM) outflowUserSum
+		FROM
+			<include refid="queryPointTable"></include> AS rp
+			<where>
+				<if test="homeCode != null">
+				AND	rp.home_code LIKE CONCAT(#{homeCode},'%')  
+				</if>
+				<if test="workCode != null">
+				AND	rp.work_code LIKE CONCAT(#{workCode},'%')  
+				</if>	
+				<if test="belongCode != null">
+				AND	rp.belong_code LIKE CONCAT(#{belongCode},'%')  
+				</if>				
+				<if test="userType != null">
+				AND	rp.user_type in
+					<foreach item="item" index="index" collection="userType" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				
+				<if test="true"><!-- 效率低，放在最后 -->
+				AND
+					<include refid="queryPointTimeField"></include> IN
+					<foreach item="item" index="index" collection="timeVals" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+			</where>
+			
+		GROUP BY
+			loc
+	</select>
+	<!-- ***********************END*/population/point*************************** -->
+</mapper>

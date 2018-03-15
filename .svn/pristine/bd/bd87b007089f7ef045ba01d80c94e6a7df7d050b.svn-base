@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>   
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- mybatis操作student对象的配置文件，与mapper接口对应 -->
+<mapper namespace="com.boco.mbd.mapper.demo.PopMapper">
+
+    <!-- 结果集定义，'id'须唯一，可作为select操作的resultMap， 'type'即实体Bean -->
+   <!--  <resultMap  id="user" type="com.boco.mbd.bean.demo.Student" >
+	 	<id property="id" column="id"/>
+	 	<result property="name" column="name"/>
+	 	<result property="sex" column="sex"/>
+  	</resultMap> -->
+
+    <!-- 全量查询，'id'须唯一，与mapper接口方法名保持一致 -->
+	<select id="queryAll" resultType="hashMap">
+		select t.region_type regionType,t.* from h_test_population_point t
+	</select>
+	
+	<!-- 根据参数'name'查询，'id'须唯一，与mapper接口方法名保持一致 -->
+	<select id="queryStudent" parameterType="String" resultType="hashMap">
+		select id,name,sex from student where name = #{name}
+	</select>
+	
+</mapper>

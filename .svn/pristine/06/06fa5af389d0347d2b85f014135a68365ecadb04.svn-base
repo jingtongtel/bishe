@@ -1,0 +1,29 @@
+package com.boco.human.v01.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+/**
+ */
+@Repository
+public interface TravelMapper {
+
+	/**
+	 * 根据条件查询
+	 * @param map
+	 * @return
+	 */
+	
+	public List<Map> intensity(Map paraMap);
+	
+	/**
+	 * 查询统计节点region
+	 * @param map
+	 * @return
+	 */
+	
+	public List<Map> queryBrotherRegion(Map paraMap);
+	
+}

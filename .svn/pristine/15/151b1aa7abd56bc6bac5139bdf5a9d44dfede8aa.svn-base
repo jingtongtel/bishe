@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>   
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.boco.human.v01.mapper.CodeMapper">
+
+    
+	<select id="queryDictionayByType"    parameterType="Map"  resultType="hashMap">
+		select t.dic_name name, t.dic_value value, t.dic_type 
+		  from dim_dictionary t
+		  <where>
+		  	<choose>
+		  		<when test="dicTypes != null and dicTypes.size() > 0">
+		  			t.dic_type in
+					<foreach item="item" index="index" collection="dicTypes" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					t.dic_type ='metadata'
+				</otherwise>
+		  	</choose>
+		 </where>
+		order by t.dic_type, t.dic_value
+	</select>
+	
+	
+	<select id="queryDictionayByBusi"    parameterType="Map"  resultType="hashMap">
+		select d.dic_type, d.dic_name, d.dic_value, g.group_name
+		  from dim_dictionary d, dim_dictionary_group g, dim_dictionary_group_lk lk
+		 where g.group_name in
+			<foreach item="item" index="index" collection="busiTypes" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		   and g.group_id = lk.group_id
+		   and lk.dict_id = d.id
+		 order by g.group_name, d.dic_type, d.dic_value
+	</select>
+
+
+   <!-- 
+	<select id="query"    parameterType="Map"  resultType="hashMap">
+		SELECT DIC_NAME dicName,DIC_VALUE dicValue  FROM pub_dim_datadictionary 
+		<where> 
+		<if test="dicType!=null and !dicType.equals('')">
+			 	  AND DIC_TYPE  in
+		<foreach item="item" index="index" collection="dicType" open="(" separator="," close=")">   
+            		#{item}
+ 		</foreach> 
+		</if>
+		<if test="parentId!=null and !parentId.equals('')">
+				 AND PARENT_ID=#{parentId}
+		</if>
+	 	</where> 
+	</select>
+	 -->
+	<select id="queryRegionLevel"    parameterType="Map"  resultType="hashMap">
+		SELECT
+		    REGION_UCODE region_code ,
+			REGION_NAME region_name,
+		    REGION_AREA region_area,
+		    REGION_LVL_ID
+		FROM
+			DIM_KEYREGION
+		WHERE
+			REGION_TYPE_ID = #{regionType}
+				<if test="regionLevel!=null and !regionLevel.equals('')">
+				 AND  REGION_LVL_ID &lt;=#{regionLevel}
+				</if>
+				
+				<if test="regionName!=null and !regionName.equals('')">
+				 AND REGION_NAME like concat(#{regionName},'%')
+				</if>
+				<if test="subRegionCode!=null and !subRegionCode.equals('')">
+				 AND 
+				<foreach item="item" index="index" collection="subRegionCode" open="(" separator="or" close=")">
+						 REGION_UCODE LIKE concat(#{item},'%')
+					</foreach>
+				
+				</if>
+		ORDER BY REGION_CODE	
+	</select>
+	<!-- 
+	<select id="queryRegion"    parameterType="Map"  resultType="hashMap">
+SELECT
+	PROV_NAME provName,
+	PROV_CODE provCode,
+	PROV_AREA provArea,
+	CITY_NAME cityName,
+	CITY_CODE cityCode,
+	CITY_AREA cityArea,
+	COUNTY_NAME countyName,
+	COUNTY_CODE countyCode,
+	COUNTY_AREA countyArea,
+	KEYREGION_NAME keyRegionName,
+	KEYREGION_CODE keyRegionCode,
+	KEYREGION_AREA keyRegionArea
+FROM
+	pub_dim_keyregion
+WHERE 1=1
+		<if test="regionType!=null and !regionType.equals('')">
+			 	  AND REGION_TYPE=#{regionType}
+		</if>
+		<if test="provCode!=null"> AND PROV_CODE LIKE #{provCode}</if>
+		<if test="cityCode!=null">AND CITY_CODE LIKE concat(#{cityCode},'%')</if>
+		<if test="countyCode!=null">AND COUNTY_CODE LIKE concat(#{countyCode},'%')</if>
+					
+	</select> -->
+</mapper>
