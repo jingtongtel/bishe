@@ -23,7 +23,7 @@
 		<!-- junit版本号 -->
 		<junit.version>4.12</junit.version>
 		<druid.version>1.0.15</druid.version>
-		<mysql.version>5.1.30</mysql.version>
+		<mysql.version>8.0.28</mysql.version>
 		<oracle.version>10.2.0.2.0</oracle.version>
 		<mybatis-mapper.version>3.3.9</mybatis-mapper.version>
 		<javaee-api.version>7.0</javaee-api.version>
